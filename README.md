@@ -1,7 +1,7 @@
-#MoneyWise.inc
-Finance tracker app
+
+# MoneyWise.inc
+finance tracker app
 proofile project
-# React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
