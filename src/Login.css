@@ -1,0 +1,56 @@
+/* Import Tailwind CSS */
+@import "https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css";
+
+/* Additional custom styles for the login page */
+.login-container {
+  min-height: calc(100vh - 4rem); /* Adjust for the navbar height */
+}
+
+.login-box {
+  background-color: #2d3748;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  width: 100%;
+  max-width: 24rem;
+}
+
+.login-title {
+  color: white;
+  font-family: sans-serif;
+  text-align: center;
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+}
+
+.login-input {
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  width: 100%;
+  padding: 0.5rem;
+  background-color: #4a5568;
+  border-radius: 0.25rem;
+}
+.username {
+  color: white;
+  font-family: helvetica;
+  font-size: 12px;
+}
+
+.pass {
+  color: white;
+  font-family: helvetica;
+  font-size: 12px;
+}
+
+.login-button {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: #4299e1;
+  border-radius: 0.25rem;
+  color: white;
+  text-align: center;
+}
+
+.login-button:hover {
+  background-color: #0056b3;
+}

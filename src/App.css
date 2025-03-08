@@ -1,0 +1,60 @@
+@import "https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css";
+
+/* Additional custom styles can be added here if needed */
+body {
+  font-family: "Inter", sans-serif;
+  background-color: rgb(17 24 39);
+}
+
+html,
+body {
+  background-color: #202226;
+  background-image: url("https://www.transparenttextures.com/patterns/white-diamond-dark.png");
+  background-repeat: cover ;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+header {
+  border-bottom: 1px solid #4e658c;
+  padding-bottom: 1rem;
+}
+
+header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+header .fas {
+  font-size: 1rem;
+}
+
+.bg-gray-800 {
+  background-color: #2d3748;
+}
+
+.bg-gray-700 {
+  background-color: #4a5568;
+}
+
+.bg-green-500 {
+  background-color: #48bb78;
+}
+
+.bg-blue-500 {
+  background-color: #4299e1;
+}
+
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+}
+
+input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+}
