@@ -1,4 +1,4 @@
-MoneyWise.inc
+#MoneyWise.inc
 Finance tracker app
 proofile project
 # React + Vite
