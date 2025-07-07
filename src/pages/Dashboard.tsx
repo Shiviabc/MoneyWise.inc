@@ -96,14 +96,15 @@ const Dashboard: React.FC = () => {
   const budgetTotal = getTotalBudget();
   const budgetRemaining = getRemainingBudget();
   const budgetUsedPercentage = budgetTotal > 0 
-    ? Math.floor(((budgetTotal - budgetRemaining) / budgetTotal) * 100)
+    ? Math.min(Math.floor(((budgetTotal - budgetRemaining) / budgetTotal) * 100), 100)
     : 0;
 
   const expenseCategories: CategoryTotal[] = getCategoryTotals('expense');
   const incomeCategories: CategoryTotal[] = getCategoryTotals('income');
 
-  // Enhanced pie chart data with better categorization
+  // Enhanced pie chart data with better categorization and real expense data
   const pieData: ChartData[] = expenseCategories
+    .filter(category => category.amount > 0) // Only show categories with actual expenses
     .sort((a, b) => b.amount - a.amount) // Sort by amount descending
     .map((category, index) => ({
       name: category.category,
@@ -112,7 +113,7 @@ const Dashboard: React.FC = () => {
       percentage: ((category.amount / totalExpenses) * 100).toFixed(1),
     }));
 
-  // Enhanced bar chart data with expense breakdown
+  // Enhanced bar chart data with actual expense breakdown by category
   const getMonthlyData = () => {
     const monthlyData = new Map();
     const today = new Date();
@@ -126,7 +127,7 @@ const Dashboard: React.FC = () => {
         name: monthKey,
         income: 0, 
         totalExpenses: 0,
-        // Major expense categories
+        // Initialize all expense categories
         food: 0,
         housing: 0,
         transportation: 0,
@@ -149,19 +150,19 @@ const Dashboard: React.FC = () => {
           } else {
             currentData.totalExpenses += transaction.amount;
             
-            // Categorize expenses
+            // Categorize expenses based on actual transaction categories
             const category = transaction.category.toLowerCase();
-            if (category.includes('food') || category.includes('groceries') || category.includes('restaurant')) {
+            if (category.includes('food') || category.includes('groceries') || category.includes('restaurant') || category.includes('dining')) {
               currentData.food += transaction.amount;
-            } else if (category.includes('housing') || category.includes('rent') || category.includes('utilities')) {
+            } else if (category.includes('housing') || category.includes('rent') || category.includes('utilities') || category.includes('mortgage')) {
               currentData.housing += transaction.amount;
-            } else if (category.includes('transportation') || category.includes('gas') || category.includes('car')) {
+            } else if (category.includes('transportation') || category.includes('gas') || category.includes('car') || category.includes('uber') || category.includes('taxi')) {
               currentData.transportation += transaction.amount;
-            } else if (category.includes('entertainment') || category.includes('movies') || category.includes('streaming')) {
+            } else if (category.includes('entertainment') || category.includes('movies') || category.includes('streaming') || category.includes('gaming')) {
               currentData.entertainment += transaction.amount;
-            } else if (category.includes('shopping') || category.includes('clothing') || category.includes('electronics')) {
+            } else if (category.includes('shopping') || category.includes('clothing') || category.includes('electronics') || category.includes('retail')) {
               currentData.shopping += transaction.amount;
-            } else if (category.includes('health') || category.includes('medical') || category.includes('pharmacy')) {
+            } else if (category.includes('health') || category.includes('medical') || category.includes('pharmacy') || category.includes('doctor')) {
               currentData.health += transaction.amount;
             } else {
               currentData.other += transaction.amount;
@@ -304,9 +305,9 @@ const Dashboard: React.FC = () => {
             <div className="text-2xl font-semibold text-gray-900">
               {formatCurrencyValue(budgetRemaining)}
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+            <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 overflow-hidden">
               <div 
-                className={`h-2.5 rounded-full ${budgetUsedPercentage > 80 ? 'bg-red-600' : 'bg-primary-600'}`}
+                className={`h-2.5 rounded-full transition-all duration-300 ${budgetUsedPercentage > 80 ? 'bg-red-600' : 'bg-primary-600'}`}
                 style={{ width: `${budgetUsedPercentage}%` }}
               ></div>
             </div>
@@ -348,130 +349,152 @@ const Dashboard: React.FC = () => {
 
         <Card className="col-span-1" title="Expense Categories Distribution">
           <div className="h-80 flex flex-col">
-            <ResponsiveContainer width="100%" height="85%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={renderPieLabel}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={renderPieTooltip} />
-              </PieChart>
-            </ResponsiveContainer>
-            
-            {/* Custom Legend */}
-            <div className="mt-2 max-h-20 overflow-y-auto">
-              <div className="grid grid-cols-2 gap-1 text-xs">
-                {pieData.slice(0, 8).map((entry, index) => (
-                  <div key={`legend-${index}`} className="flex items-center">
-                    <div 
-                      className="w-3 h-3 rounded-full mr-2 flex-shrink-0" 
-                      style={{ backgroundColor: entry.color }}
-                    ></div>
-                    <span className="truncate" title={entry.name}>
-                      {entry.name} ({entry.percentage}%)
-                    </span>
+            {pieData.length > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height="85%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={renderPieLabel}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={renderPieTooltip} />
+                  </PieChart>
+                </ResponsiveContainer>
+                
+                {/* Custom Legend */}
+                <div className="mt-2 max-h-20 overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                    {pieData.slice(0, 8).map((entry, index) => (
+                      <div key={`legend-${index}`} className="flex items-center">
+                        <div 
+                          className="w-3 h-3 rounded-full mr-2 flex-shrink-0" 
+                          style={{ backgroundColor: entry.color }}
+                        ></div>
+                        <span className="truncate" title={entry.name}>
+                          {entry.name} ({entry.percentage}%)
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              {pieData.length > 8 && (
-                <div className="text-center text-xs text-gray-500 mt-1">
-                  +{pieData.length - 8} more categories
+                  {pieData.length > 8 && (
+                    <div className="text-center text-xs text-gray-500 mt-1">
+                      +{pieData.length - 8} more categories
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <PiggyBank className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No expense data available</p>
+                  <p className="text-sm text-gray-400">Add some transactions to see the breakdown</p>
+                </div>
+              </div>
+            )}
           </div>
         </Card>
       </div>
 
       {/* Category Breakdown Summary */}
-      <Card title="Top Expense Categories">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {expenseCategories.slice(0, 6).map((category, index) => {
-            const percentage = ((category.amount / totalExpenses) * 100).toFixed(1);
-            const color = CATEGORY_COLORS[category.category] || COLORS[index % COLORS.length];
-            
-            return (
-              <div key={category.category} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div 
-                    className="w-4 h-4 rounded-full flex-shrink-0" 
-                    style={{ backgroundColor: color }}
-                  ></div>
-                  <div>
-                    <p className="font-medium text-gray-900">{category.category}</p>
-                    <p className="text-sm text-gray-500">{percentage}% of expenses</p>
+      {expenseCategories.length > 0 && (
+        <Card title="Top Expense Categories">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {expenseCategories.slice(0, 6).map((category, index) => {
+              const percentage = ((category.amount / totalExpenses) * 100).toFixed(1);
+              const color = CATEGORY_COLORS[category.category] || COLORS[index % COLORS.length];
+              
+              return (
+                <div key={category.category} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div 
+                      className="w-4 h-4 rounded-full flex-shrink-0" 
+                      style={{ backgroundColor: color }}
+                    ></div>
+                    <div>
+                      <p className="font-medium text-gray-900">{category.category}</p>
+                      <p className="text-sm text-gray-500">{percentage}% of expenses</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-gray-900">
+                      {formatCurrencyValue(category.amount)}
+                    </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-gray-900">
-                    {formatCurrencyValue(category.amount)}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
+              );
+            })}
+          </div>
+        </Card>
+      )}
 
       {/* Recent Transactions */}
       <Card title="Recent Transactions">
         <div className="overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Description
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
-                </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Amount
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {recentTransactions.map((transaction) => (
-                <tr key={transaction.id} className="hover:bg-gray-50 transition-colors duration-150">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(transaction.date).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {transaction.description}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <span 
-                      className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                      style={{
-                        backgroundColor: CATEGORY_COLORS[transaction.category] ? `${CATEGORY_COLORS[transaction.category]}20` : '#E5E7EB',
-                        color: CATEGORY_COLORS[transaction.category] || '#374151'
-                      }}
-                    >
-                      {transaction.category}
-                    </span>
-                  </td>
-                  <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium text-right ${
-                    transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {transaction.type === 'income' ? '+' : '-'}{formatCurrencyValue(transaction.amount)}
-                  </td>
+          {recentTransactions.length > 0 ? (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Description
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Category
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Amount
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {recentTransactions.map((transaction) => (
+                  <tr key={transaction.id} className="hover:bg-gray-50 transition-colors duration-150">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(transaction.date).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {transaction.description}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <span 
+                        className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                        style={{
+                          backgroundColor: CATEGORY_COLORS[transaction.category] ? `${CATEGORY_COLORS[transaction.category]}20` : '#E5E7EB',
+                          color: CATEGORY_COLORS[transaction.category] || '#374151'
+                        }}
+                      >
+                        {transaction.category}
+                      </span>
+                    </td>
+                    <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium text-right ${
+                      transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {transaction.type === 'income' ? '+' : '-'}{formatCurrencyValue(transaction.amount)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="text-center py-8">
+              <ArrowUpRight className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">No transactions yet</p>
+              <p className="text-sm text-gray-400">Add some transactions to see them here</p>
+            </div>
+          )}
         </div>
       </Card>
     </div>
